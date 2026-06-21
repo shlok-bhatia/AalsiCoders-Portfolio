@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cyber-green: #00ff41;
+  --cyber-blue: #00aaff;
+  --cyber-purple: #b040ff;
+  --cyber-cyan: #00e5ff;
+  --cyber-gold: #ffd700;
+  --bg-dark: #020408;
+  --bg-panel: rgba(2, 8, 16, 0.92);
+  --border-glow: rgba(0, 170, 255, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  background: #020408;
+  color: #e8f4ff;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #020408;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cyber-blue);
+  border-radius: 2px;
+}
+
+/* Cinematic letterbox bars */
+.letterbox-top,
+.letterbox-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #000;
+  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+.letterbox-top { top: 0; }
+.letterbox-bottom { bottom: 0; }
+
+/* Panel glassmorphism */
+.glass-panel {
+  background: rgba(2, 8, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 170, 255, 0.2);
+  border-radius: 12px;
+}
+
+/* Neon text utilities */
+.neon-green { 
+  color: var(--cyber-green);
+  text-shadow: 0 0 10px var(--cyber-green), 0 0 20px var(--cyber-green);
+}
+.neon-blue {
+  color: var(--cyber-blue);
+  text-shadow: 0 0 10px var(--cyber-blue), 0 0 20px var(--cyber-blue);
+}
+.neon-purple {
+  color: var(--cyber-purple);
+  text-shadow: 0 0 10px var(--cyber-purple), 0 0 20px var(--cyber-purple);
+}
+
+/* Scanline overlay */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Content panel animations */
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes borderPulse {
+  0%, 100% { border-color: rgba(0, 170, 255, 0.2); }
+  50% { border-color: rgba(0, 170, 255, 0.6); }
+}
+
+@keyframes gridScroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(60px); }
+}
+
+@keyframes hologramFlicker {
+  0%, 98%, 100% { opacity: 1; }
+  99% { opacity: 0.8; }
+}
+
+.panel-enter {
+  animation: panelSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyber-blue), var(--cyber-purple));
+  z-index: 200;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--cyber-blue);
+}
+
+/* Loading screen */
+.loading-bar {
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
