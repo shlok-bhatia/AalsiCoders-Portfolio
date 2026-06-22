@@ -2,7 +2,7 @@
 
 // NOTE: This file is always loaded via next/dynamic with ssr:false from page.tsx
 // so using @react-three/fiber Canvas here is safe.
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useAppStore } from '@/store/useAppStore';
 import { OBJECTS } from '@/lib/objectData';
@@ -12,6 +12,7 @@ import Suspense3D from './Suspense3D';
 export default function Room() {
   const { phase, setRoomLoaded, setFocusedObject } = useAppStore();
   const [isMobile, setIsMobile] = useState(false);
+  const roomLoadedRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -26,8 +27,24 @@ export default function Room() {
   useEffect(() => {
     if (isMobile && phase === 'transition') {
       setRoomLoaded(true);
+      roomLoadedRef.current = true;
     }
   }, [isMobile, phase, setRoomLoaded]);
+
+  // Safety fallback: if Canvas doesn't report ready within 4s of transition, force it
+  useEffect(() => {
+    if (phase !== 'transition' || roomLoadedRef.current) return;
+
+    const fallback = setTimeout(() => {
+      if (!roomLoadedRef.current) {
+        console.warn('[Room] Canvas did not report ready in 4s, forcing roomLoaded.');
+        setRoomLoaded(true);
+        roomLoadedRef.current = true;
+      }
+    }, 4000);
+
+    return () => clearTimeout(fallback);
+  }, [phase, setRoomLoaded]);
 
   if (phase !== 'room' && phase !== 'transition') return null;
 
@@ -115,7 +132,11 @@ export default function Room() {
         }}
         camera={{ fov: 60, near: 0.1, far: 100, position: [0, 1.6, 7] }}
         shadows="soft"
-        onCreated={() => setRoomLoaded(true)}
+        onCreated={() => {
+          console.log('[Room] Canvas created, setting roomLoaded = true');
+          setRoomLoaded(true);
+          roomLoadedRef.current = true;
+        }}
         style={{ background: '#020408' }}
       >
         <Suspense fallback={null}>

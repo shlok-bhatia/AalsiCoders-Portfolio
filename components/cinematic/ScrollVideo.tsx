@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 
 // Scene timestamp config (seconds into the video)
@@ -16,6 +16,7 @@ export default function ScrollVideo() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
   const lastSeekRef = useRef<number>(0);
+  const [endZoom, setEndZoom] = useState(0); // 0-1, how close to end
 
   const {
     phase,
@@ -59,8 +60,17 @@ export default function ScrollVideo() {
         setScrollProgress(progress);
         seekVideo(progress);
 
+        // Gradual zoom/darken as scroll approaches end (90% - 98%)
+        if (progress >= 0.90) {
+          const zoomProgress = Math.min((progress - 0.90) / 0.08, 1);
+          setEndZoom(zoomProgress);
+        } else {
+          setEndZoom(0);
+        }
+
         // Trigger transition when scroll hits 98% (and user has actually scrolled)
         if (progress >= 0.98 && scrollTop > 100) {
+          console.log('[ScrollVideo] Scroll hit 98%, triggering transition. scrollTop=', scrollTop);
           setPhase('transition');
         }
       });
@@ -79,15 +89,18 @@ export default function ScrollVideo() {
     if (!video) return;
 
     let timedOut = false;
+    let timeoutId: NodeJS.Timeout;
 
     const bypassCinematic = () => {
       console.warn("Cinematic video failed to load or timed out. Bypassing cinematic phase.");
+      clearTimeout(timeoutId);
       setVideoReady(true);
       setPhase('transition');
     };
 
     const onCanPlay = () => {
       if (timedOut) return;
+      clearTimeout(timeoutId);
       setVideoReady(true);
       setPhase('cinematic');
     };
@@ -102,7 +115,7 @@ export default function ScrollVideo() {
     };
 
     // 10s safety timeout for slow networks or 404s (increased for large video files)
-    const timeoutId = setTimeout(() => {
+    timeoutId = setTimeout(() => {
       timedOut = true;
       bypassCinematic();
     }, 10000);
@@ -136,7 +149,7 @@ export default function ScrollVideo() {
     return scrollProgress >= scene.start ? scene : acc;
   }, SCENES[0]);
 
-  const isVisible = phase === 'cinematic' || phase === 'loading';
+  const isVisible = phase === 'cinematic' || phase === 'loading' || phase === 'transition';
   if (!isVisible) return null;
 
   return (
@@ -205,24 +218,35 @@ export default function ScrollVideo() {
             overflow: 'hidden',
           }}
         >
-          <video
-            ref={videoRef}
-            id="cinematic-video"
-            preload="auto"
-            muted
-            playsInline
+          {/* Inner wrapper for zoom transform */}
+          <div
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-              opacity: videoReady ? 1 : 0,
-              transition: 'opacity 0.8s ease',
+              transform: `scale(${1 + endZoom * 0.08})`,
+              transition: 'transform 0.3s ease-out',
+              willChange: 'transform',
             }}
           >
-            {/* Video file from /public/videos/ */}
-            <source src="/videos/cinematic.mp4" type="video/mp4" />
-          </video>
+            <video
+              ref={videoRef}
+              id="cinematic-video"
+              preload="auto"
+              muted
+              playsInline
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                opacity: videoReady ? 1 : 0,
+                transition: 'opacity 0.8s ease',
+              }}
+            >
+              {/* Video file from /public/assets/video/ */}
+              <source src="/assets/video/cinematic.mp4" type="video/mp4" />
+            </video>
+          </div>
 
           {/* Subtle vignette overlay */}
           <div
@@ -232,6 +256,16 @@ export default function ScrollVideo() {
                 radial-gradient(ellipse at center, transparent 50%, rgba(2,4,8,0.6) 100%),
                 linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 10%, transparent 90%, rgba(0,0,0,0.5) 100%)
               `,
+            }}
+          />
+
+          {/* End-of-scroll darkening overlay — leads into transition */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(2,4,8,0.3) 0%, rgba(2,4,8,0.8) 100%)',
+              opacity: endZoom,
+              transition: 'opacity 0.3s ease-out',
             }}
           />
         </div>

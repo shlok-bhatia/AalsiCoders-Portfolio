@@ -312,7 +312,7 @@ export function WallDisplayMesh() {
         <group key={i} position={[-1.1 + i * 0.74, -0.1, 0.052]}>
           <mesh position={[0, -0.2, 0]}>
             <boxGeometry args={[0.14, 0.6, 0.001]} />
-            <meshBasicMaterial color="#ffd70020" />
+            <meshBasicMaterial color="#ffd700" transparent opacity={0.125} />
           </mesh>
           <mesh position={[0, -0.2 + (0.3 + i * 0.08) / 2, 0]}>
             <boxGeometry args={[0.12, 0.3 + i * 0.08, 0.001]} />
