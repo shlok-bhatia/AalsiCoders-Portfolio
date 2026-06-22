@@ -54,7 +54,11 @@ export default function Room() {
     return (
       <div
         className="fixed inset-0 z-10 flex flex-col items-center justify-start overflow-y-auto px-6 py-20"
-        style={{ background: '#020408' }}
+        // style={{ background: '#020408' }}
+        style={{
+          background:
+            'radial-gradient(circle at center, #081a2f 0%, #040812 45%, #020408 100%)'
+        }}
       >
         {/* Mobile Header */}
         <div className="w-full max-w-md mb-8 text-center mt-6">
@@ -130,7 +134,13 @@ export default function Room() {
           stencil: false,
           depth: true,
         }}
-        camera={{ fov: 60, near: 0.1, far: 100, position: [0, 1.6, 7] }}
+        // camera={{ fov: 60, near: 0.1, far: 100, position: [0, 1.6, 7] }}
+        camera={{
+          fov: 45,
+          near: 0.1,
+          far: 100,
+          position: [0, 1.8, 4.8]
+        }}
         shadows="soft"
         onCreated={() => {
           console.log('[Room] Canvas created, setting roomLoaded = true');

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Grid, MeshReflectorMaterial } from '@react-three/drei';
+import { Text } from "@react-three/drei";
 
 export default function ProceduralRoom() {
   const ambientGridRef = useRef<THREE.Group>(null);
@@ -48,10 +49,10 @@ export default function ProceduralRoom() {
         args={[16, 12]}
         cellSize={0.6}
         cellThickness={0.3}
-        cellColor="#001833"
+        cellColor="#0077ff"
         sectionSize={3}
         sectionThickness={0.6}
-        sectionColor="#002244"
+        sectionColor="#00e5ff"
         fadeDistance={10}
         fadeStrength={1}
         infiniteGrid={false}
@@ -168,25 +169,56 @@ export default function ProceduralRoom() {
 
       {/* ── LIGHTING ── */}
       {/* Key light */}
+
+      <pointLight
+        position={[0, 3, 2]}
+        color="#66ccff"
+        intensity={6}
+        distance={20}
+        decay={2}
+      />
       <directionalLight
         position={[3, 6, 4]}
-        intensity={0.8}
-        color="#4488ff"
+        intensity={1.4}
+        color="#9ed0ff"
         castShadow
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={[2048, 2048]}
       />
       {/* Fill light */}
       <directionalLight
         position={[-4, 4, 2]}
-        intensity={0.4}
-        color="#2244aa"
+        intensity={0.9}
+        color="#5c8cff"
       />
       {/* Purple accent */}
-      <pointLight position={[-4, 3, -2]} color="#b040ff" intensity={2} distance={5} decay={2} />
+      <pointLight
+        position={[-2, 2, 1]}
+        color="#00ff41"
+        intensity={3}
+        distance={8}
+      />
+      <pointLight
+        position={[2, 2, 1]}
+        color="#b040ff"
+        intensity={3}
+        distance={8}
+      />
+      <pointLight
+        position={[-4, 3, -2]}
+        color="#b040ff"
+        intensity={4}
+        distance={10}
+      />
+      <pointLight
+        position={[4, 2, -1]}
+        color="#00ff41"
+        intensity={2}
+        distance={8}
+      />
       {/* Green accent (left) */}
       <pointLight position={[-4.5, 1, 1]} color="#00ff41" intensity={1.5} distance={4} decay={2} />
       {/* General ambient */}
-      <ambientLight intensity={0.15} color="#080c18" />
+      <ambientLight intensity={0.85} color="#d6ecff" />
     </group>
   );
 }

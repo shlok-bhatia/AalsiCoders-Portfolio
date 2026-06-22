@@ -44,7 +44,13 @@ function Character({ position, rotation = [0, 0, 0], accentColor, particleColor 
   const pc = new THREE.Color(particleColor);
 
   return (
-    <group ref={groupRef} position={position} rotation={rotation}>
+    // <group ref={groupRef} position={position} rotation={rotation}>
+    <group
+      ref={groupRef}
+      position={position}
+      rotation={rotation}
+      scale={1.35}
+    >
 
       {/* ── Boots ── */}
       <mesh position={[-0.07, 0.07, 0]} castShadow>

@@ -32,10 +32,11 @@ export default function TransitionBridge() {
     const video = document.getElementById('cinematic-video') as HTMLVideoElement;
     if (video) {
       video.pause();
-      if (video.duration) {
-        video.currentTime = video.duration;
-      }
+        // if (video.duration) {
+        //   video.currentTime = video.duration;
+        // }
     }
+    
 
     // Lock scroll during transition
     document.body.style.overflow = 'hidden';

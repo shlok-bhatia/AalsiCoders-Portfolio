@@ -1,9 +1,9 @@
+
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 
-// Scene timestamp config (seconds into the video)
 const SCENES = [
   { start: 0,    label: 'Helicopter Approach' },
   { start: 0.22, label: 'Team Jump' },
@@ -16,20 +16,15 @@ export default function ScrollVideo() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
   const lastSeekRef = useRef<number>(0);
-  const [endZoom, setEndZoom] = useState(0); // 0-1, how close to end
+  const transitionTriggeredRef = useRef(false);
+  const [endZoom, setEndZoom] = useState(0);
 
-  const {
-    phase,
-    setPhase,
-    setVideoReady,
-    setScrollProgress,
-    videoReady,
-  } = useAppStore();
+  const { phase, setPhase, setVideoReady, setScrollProgress, videoReady } = useAppStore();
 
-  // RAF-throttled seek — prevents hammering the decoder
+  // RAF-throttled seek
   const seekVideo = useCallback((progress: number) => {
     const now = performance.now();
-    if (now - lastSeekRef.current < 14) return; // ~60fps throttle
+    if (now - lastSeekRef.current < 14) return;
     lastSeekRef.current = now;
 
     const video = videoRef.current;
@@ -51,27 +46,41 @@ export default function ScrollVideo() {
 
         const scrollTop = window.scrollY;
         const maxScroll = container.scrollHeight - window.innerHeight;
-        
-        // Only calculate progress if container is actually scrollable
         if (maxScroll <= 0) return;
-        
+
         const progress = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
 
         setScrollProgress(progress);
         seekVideo(progress);
 
-        // Gradual zoom/darken as scroll approaches end (90% - 98%)
-        if (progress >= 0.90) {
-          const zoomProgress = Math.min((progress - 0.90) / 0.08, 1);
+        // Gradual zoom starts at 85%
+        if (progress >= 0.85) {
+          const zoomProgress = Math.min((progress - 0.85) / 0.12, 1);
           setEndZoom(zoomProgress);
         } else {
           setEndZoom(0);
         }
 
-        // Trigger transition when scroll hits 98% (and user has actually scrolled)
-        if (progress >= 0.98 && scrollTop > 100) {
-          console.log('[ScrollVideo] Scroll hit 98%, triggering transition. scrollTop=', scrollTop);
-          setPhase('transition');
+        // Trigger at 99%: let video play naturally to its end
+        if (progress >= 0.99 && scrollTop > 100 && !transitionTriggeredRef.current) {
+          transitionTriggeredRef.current = true;
+          document.body.style.overflow = 'hidden';
+
+          const video = videoRef.current;
+          if (video) {
+            video.onended = () => {
+              setPhase('transition');
+            };
+            // If already at the end or play() fails, fall back
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => setPhase('transition'));
+            }
+            // Hard safety: transition after 3s regardless
+            setTimeout(() => setPhase('transition'), 3000);
+          } else {
+            setPhase('transition');
+          }
         }
       });
     };
@@ -92,7 +101,7 @@ export default function ScrollVideo() {
     let timeoutId: NodeJS.Timeout;
 
     const bypassCinematic = () => {
-      console.warn("Cinematic video failed to load or timed out. Bypassing cinematic phase.");
+      console.warn('[ScrollVideo] Video failed or timed out. Bypassing.');
       clearTimeout(timeoutId);
       setVideoReady(true);
       setPhase('transition');
@@ -110,11 +119,8 @@ export default function ScrollVideo() {
       video.currentTime = 0;
     };
 
-    const onError = () => {
-      bypassCinematic();
-    };
+    const onError = () => bypassCinematic();
 
-    // 10s safety timeout for slow networks or 404s (increased for large video files)
     timeoutId = setTimeout(() => {
       timedOut = true;
       bypassCinematic();
@@ -123,12 +129,9 @@ export default function ScrollVideo() {
     video.addEventListener('canplaythrough', onCanPlay);
     video.addEventListener('loadeddata', onLoadedData);
     video.addEventListener('error', onError);
-    
-    // Also listen to source elements for errors
+
     const sources = video.querySelectorAll('source');
-    sources.forEach(src => {
-      src.addEventListener('error', onError);
-    });
+    sources.forEach(src => src.addEventListener('error', onError));
 
     video.load();
 
@@ -137,13 +140,10 @@ export default function ScrollVideo() {
       video.removeEventListener('canplaythrough', onCanPlay);
       video.removeEventListener('loadeddata', onLoadedData);
       video.removeEventListener('error', onError);
-      sources.forEach(src => {
-        src.removeEventListener('error', onError);
-      });
+      sources.forEach(src => src.removeEventListener('error', onError));
     };
   }, [setVideoReady, setPhase]);
 
-  // Current scene label from scroll progress
   const { scrollProgress } = useAppStore();
   const currentScene = SCENES.reduce((acc, scene) => {
     return scrollProgress >= scene.start ? scene : acc;
@@ -154,71 +154,37 @@ export default function ScrollVideo() {
 
   return (
     <>
-      {/* Cinematic letterbox */}
       <div className="letterbox-top" style={{ opacity: videoReady ? 1 : 0 }} />
       <div className="letterbox-bottom" style={{ opacity: videoReady ? 1 : 0 }} />
 
-      {/* Scroll progress bar */}
-      <div
-        className="scroll-progress"
-        style={{ width: `${scrollProgress * 100}%` }}
-      />
+      <div className="scroll-progress" style={{ width: `${scrollProgress * 100}%` }} />
 
-      {/* Scene label */}
       {videoReady && (
         <div
           className="fixed bottom-20 left-1/2 z-50 pointer-events-none"
-          style={{
-            transform: 'translateX(-50%)',
-            opacity: 0.6,
-            transition: 'opacity 0.5s',
-          }}
+          style={{ transform: 'translateX(-50%)', opacity: 0.6, transition: 'opacity 0.5s' }}
         >
-          <div
-            className="text-xs tracking-[0.3em] uppercase font-mono"
-            style={{ color: '#00aaff' }}
-          >
+          <div className="text-xs tracking-[0.3em] uppercase font-mono" style={{ color: '#00aaff' }}>
             {currentScene.label}
           </div>
         </div>
       )}
 
-      {/* Scroll hint */}
       {videoReady && scrollProgress < 0.02 && (
         <div
           className="fixed bottom-12 left-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"
           style={{ transform: 'translateX(-50%)' }}
         >
-          <div className="text-xs text-gray-500 tracking-widest font-mono">
-            SCROLL TO CONTINUE
-          </div>
+          <div className="text-xs text-gray-500 tracking-widest font-mono">SCROLL TO CONTINUE</div>
           <div
             className="w-px h-8"
-            style={{
-              background: 'linear-gradient(to bottom, #00aaff, transparent)',
-              animation: 'pulse 2s ease-in-out infinite',
-            }}
+            style={{ background: 'linear-gradient(to bottom, #00aaff, transparent)', animation: 'pulse 2s ease-in-out infinite' }}
           />
         </div>
       )}
 
-      {/* Scroll container */}
-      <div
-        ref={containerRef}
-        id="scroll-container"
-        style={{ height: '600vh', position: 'relative' }}
-      >
-        {/* Sticky video wrapper */}
-        <div
-          style={{
-            position: 'sticky',
-            top: 0,
-            height: '100vh',
-            width: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Inner wrapper for zoom transform */}
+      <div ref={containerRef} id="scroll-container" style={{ height: '400vh', position: 'relative' }}>
+        <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
           <div
             style={{
               width: '100%',
@@ -243,12 +209,10 @@ export default function ScrollVideo() {
                 transition: 'opacity 0.8s ease',
               }}
             >
-              {/* Video file from /public/assets/video/ */}
               <source src="/assets/video/cinematic.mp4" type="video/mp4" />
             </video>
           </div>
 
-          {/* Subtle vignette overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -259,7 +223,6 @@ export default function ScrollVideo() {
             }}
           />
 
-          {/* End-of-scroll darkening overlay — leads into transition */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
