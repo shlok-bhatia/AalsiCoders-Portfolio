@@ -99,7 +99,6 @@ export default function InteractiveObject({ data, children }: Props) {
           color={data.color}
           anchorX="center"
           anchorY="middle"
-          font="/assets/fonts/Inter-Medium.woff"
         >
           {data.label}
           <meshBasicMaterial color={data.color} />

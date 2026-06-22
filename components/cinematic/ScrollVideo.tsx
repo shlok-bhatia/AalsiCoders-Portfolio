@@ -50,13 +50,17 @@ export default function ScrollVideo() {
 
         const scrollTop = window.scrollY;
         const maxScroll = container.scrollHeight - window.innerHeight;
+        
+        // Only calculate progress if container is actually scrollable
+        if (maxScroll <= 0) return;
+        
         const progress = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
 
         setScrollProgress(progress);
         seekVideo(progress);
 
-        // Trigger transition when scroll hits 98%
-        if (progress >= 0.98) {
+        // Trigger transition when scroll hits 98% (and user has actually scrolled)
+        if (progress >= 0.98 && scrollTop > 100) {
           setPhase('transition');
         }
       });
@@ -74,22 +78,55 @@ export default function ScrollVideo() {
     const video = videoRef.current;
     if (!video) return;
 
+    let timedOut = false;
+
+    const bypassCinematic = () => {
+      console.warn("Cinematic video failed to load or timed out. Bypassing cinematic phase.");
+      setVideoReady(true);
+      setPhase('transition');
+    };
+
     const onCanPlay = () => {
+      if (timedOut) return;
       setVideoReady(true);
       setPhase('cinematic');
     };
 
     const onLoadedData = () => {
+      if (timedOut) return;
       video.currentTime = 0;
     };
 
+    const onError = () => {
+      bypassCinematic();
+    };
+
+    // 10s safety timeout for slow networks or 404s (increased for large video files)
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      bypassCinematic();
+    }, 10000);
+
     video.addEventListener('canplaythrough', onCanPlay);
     video.addEventListener('loadeddata', onLoadedData);
+    video.addEventListener('error', onError);
+    
+    // Also listen to source elements for errors
+    const sources = video.querySelectorAll('source');
+    sources.forEach(src => {
+      src.addEventListener('error', onError);
+    });
+
     video.load();
 
     return () => {
+      clearTimeout(timeoutId);
       video.removeEventListener('canplaythrough', onCanPlay);
       video.removeEventListener('loadeddata', onLoadedData);
+      video.removeEventListener('error', onError);
+      sources.forEach(src => {
+        src.removeEventListener('error', onError);
+      });
     };
   }, [setVideoReady, setPhase]);
 
@@ -183,9 +220,8 @@ export default function ScrollVideo() {
               transition: 'opacity 0.8s ease',
             }}
           >
-            {/* Drop your video files in /public/assets/video/ */}
-            <source src="/assets/video/cinematic.webm" type="video/webm" />
-            <source src="/assets/video/cinematic.mp4" type="video/mp4" />
+            {/* Video file from /public/videos/ */}
+            <source src="/videos/cinematic.mp4" type="video/mp4" />
           </video>
 
           {/* Subtle vignette overlay */}

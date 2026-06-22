@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { OBJECTS } from '@/lib/objectData';
 import type { ObjectId } from '@/store/useAppStore';
@@ -8,6 +8,19 @@ import type { ObjectId } from '@/store/useAppStore';
 export default function ContentPanel() {
   const { focusedObject, setFocusedObject, setCursorVariant } = useAppStore();
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const [formName, setFormName] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formMessage, setFormMessage] = useState('');
+  const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+
+  // Reset form when panel is closed or changed
+  useEffect(() => {
+    setFormName('');
+    setFormEmail('');
+    setFormMessage('');
+    setFormStatus('idle');
+  }, [focusedObject]);
 
   useEffect(() => {
     if (panelRef.current) {
@@ -162,6 +175,156 @@ export default function ContentPanel() {
                 </a>
               ))}
             </div>
+          )}
+
+          {/* Secure Contact Form */}
+          {focusedObject === 'phone' && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!formName || !formEmail || !formMessage) return;
+                setFormStatus('sending');
+                setTimeout(() => {
+                  setFormStatus('success');
+                }, 1500);
+              }}
+              className="mt-6 space-y-4"
+            >
+              <div className="h-px bg-white/5 my-4" />
+              <div className="text-[10px] font-mono tracking-widest text-gray-500 uppercase mb-2">
+                SECURE TRANSMISSION PROTOCOL
+              </div>
+
+              {formStatus === 'success' ? (
+                <div
+                  className="p-4 rounded-lg text-center"
+                  style={{
+                    background: 'rgba(0, 255, 65, 0.05)',
+                    border: '1px solid rgba(0, 255, 65, 0.3)',
+                    boxShadow: '0 0 15px rgba(0, 255, 65, 0.1)',
+                  }}
+                >
+                  <div className="text-xs font-mono text-[#00ff41] font-bold uppercase mb-1">
+                    TRANSMISSION SUCCESSFUL
+                  </div>
+                  <div className="text-[11px] text-gray-400 font-mono">
+                    Message encrypted and routed. We will respond within 24 hours.
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-[10px] font-mono text-gray-400 uppercase mb-1">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      disabled={formStatus === 'sending'}
+                      placeholder="Ident: Agent / Guest"
+                      className="w-full text-xs p-2.5 rounded-lg border bg-black/40 text-white placeholder-gray-600 focus:outline-none transition-all duration-200"
+                      style={{
+                        borderColor: 'rgba(0, 229, 255, 0.2)',
+                        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#00e5ff';
+                        e.target.style.boxShadow = '0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 10px rgba(0,0,0,0.5)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(0, 229, 255, 0.2)';
+                        e.target.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono text-gray-400 uppercase mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formEmail}
+                      onChange={(e) => setFormEmail(e.target.value)}
+                      disabled={formStatus === 'sending'}
+                      placeholder="communication@channel.com"
+                      className="w-full text-xs p-2.5 rounded-lg border bg-black/40 text-white placeholder-gray-600 focus:outline-none transition-all duration-200"
+                      style={{
+                        borderColor: 'rgba(0, 229, 255, 0.2)',
+                        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#00e5ff';
+                        e.target.style.boxShadow = '0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 10px rgba(0,0,0,0.5)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(0, 229, 255, 0.2)';
+                        e.target.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono text-gray-400 uppercase mb-1">
+                      Message
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={formMessage}
+                      onChange={(e) => setFormMessage(e.target.value)}
+                      disabled={formStatus === 'sending'}
+                      placeholder="Details of your operation / project..."
+                      className="w-full text-xs p-2.5 rounded-lg border bg-black/40 text-white placeholder-gray-600 focus:outline-none transition-all duration-200 resize-none"
+                      style={{
+                        borderColor: 'rgba(0, 229, 255, 0.2)',
+                        boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#00e5ff';
+                        e.target.style.boxShadow = '0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 10px rgba(0,0,0,0.5)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(0, 229, 255, 0.2)';
+                        e.target.style.boxShadow = 'inset 0 0 10px rgba(0,0,0,0.5)';
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={formStatus === 'sending'}
+                    className="w-full py-2.5 rounded text-xs font-mono font-bold tracking-widest transition-all duration-300"
+                    style={{
+                      background: 'rgba(0, 229, 255, 0.1)',
+                      border: '1px solid #00e5ff',
+                      color: '#00e5ff',
+                      boxShadow: '0 0 15px rgba(0, 229, 255, 0.1)',
+                      cursor: formStatus === 'sending' ? 'not-allowed' : 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (formStatus !== 'sending') {
+                        e.currentTarget.style.background = '#00e5ff';
+                        e.currentTarget.style.color = '#000';
+                        e.currentTarget.style.boxShadow = '0 0 25px rgba(0, 229, 255, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (formStatus !== 'sending') {
+                        e.currentTarget.style.background = 'rgba(0, 229, 255, 0.1)';
+                        e.currentTarget.style.color = '#00e5ff';
+                        e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 229, 255, 0.1)';
+                      }
+                    }}
+                  >
+                    {formStatus === 'sending' ? 'SENDING TRANSMISSION...' : 'DISPATCH MESSAGE'}
+                  </button>
+                </>
+              )}
+            </form>
           )}
 
           {/* Footer */}

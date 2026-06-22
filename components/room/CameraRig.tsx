@@ -85,7 +85,6 @@ export default function CameraRig() {
   return (
     <OrbitControls
       ref={controlsRef}
-      args={[camera, gl.domElement]}
       enableDamping
       dampingFactor={0.06}
       minDistance={1.5}

@@ -14,6 +14,12 @@ dist
 # Production
 build
 
+# Media files (large videos should be hosted externally)
+public/videos/
+*.mp4
+*.mov
+*.webm
+
 # Misc
 .DS_Store
 *.pem

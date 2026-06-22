@@ -9,47 +9,51 @@ export default function TransitionBridge() {
   const hasTriggered = useRef(false);
 
   useEffect(() => {
-    if (phase !== 'transition' || hasTriggered.current) return;
-    hasTriggered.current = true;
+    if (phase !== 'transition') {
+      hasTriggered.current = false;
+      return;
+    }
 
     // Freeze video on last frame
     const video = document.getElementById('cinematic-video') as HTMLVideoElement;
     if (video) {
       video.pause();
-      video.currentTime = video.duration;
+      if (video.duration) {
+        video.currentTime = video.duration;
+      }
     }
 
     // Lock scroll during transition
     document.body.style.overflow = 'hidden';
 
-    // Sequence:
-    // 1. Black flash (60ms)
-    // 2. Fade in 3D room
-    // 3. Activate room phase
-    const step1 = setTimeout(() => {
-      if (overlayRef.current) {
-        overlayRef.current.style.opacity = '1';
-      }
-    }, 0);
+    // Show black overlay immediately to hide canvas compilation
+    if (overlayRef.current) {
+      overlayRef.current.style.transition = 'opacity 0.06s ease';
+      overlayRef.current.style.opacity = '1';
+    }
+  }, [phase]);
 
-    const step2 = setTimeout(() => {
+  useEffect(() => {
+    if (phase !== 'transition' || !roomLoaded || hasTriggered.current) return;
+    hasTriggered.current = true;
+
+    // Room is loaded! Fade out black overlay
+    const fadeOutTimeout = setTimeout(() => {
       if (overlayRef.current) {
         overlayRef.current.style.transition = 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
         overlayRef.current.style.opacity = '0';
       }
-    }, 300);
+    }, 100);
 
-    const step3 = setTimeout(() => {
+    const completeTimeout = setTimeout(() => {
       setPhase('room');
       document.body.style.overflow = '';
-      // Scroll to top after transition
       window.scrollTo(0, 0);
-    }, 1400);
+    }, 1300);
 
     return () => {
-      clearTimeout(step1);
-      clearTimeout(step2);
-      clearTimeout(step3);
+      clearTimeout(fadeOutTimeout);
+      clearTimeout(completeTimeout);
     };
   }, [phase, roomLoaded, setPhase]);
 
