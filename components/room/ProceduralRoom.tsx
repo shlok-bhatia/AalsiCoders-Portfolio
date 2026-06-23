@@ -287,12 +287,12 @@ import * as THREE from 'three';
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Grid, MeshReflectorMaterial } from '@react-three/drei';
-
+import { useTexture } from "@react-three/drei";
 export default function ProceduralRoom() {
   const holoRingRef = useRef<THREE.Mesh>(null);
   const holoRing2Ref = useRef<THREE.Mesh>(null);
   const energyRef = useRef<THREE.Group>(null);
-
+  const backdrop = useTexture("assets/images/mountain-sunset.jpeg");
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     if (holoRingRef.current) {
@@ -474,7 +474,7 @@ export default function ProceduralRoom() {
 
         {/* Left Door Frame */}
         <mesh position={[-1.35, 2.2, 0.12]}>
-          
+
           <lineSegments>
             <edgesGeometry
               args={[
@@ -508,7 +508,7 @@ export default function ProceduralRoom() {
 
         {/* Right Door Frame */}
         <mesh position={[1.35, 2.2, 0.12]}>
-          
+
           <lineSegments>
             <edgesGeometry
               args={[
@@ -564,124 +564,14 @@ export default function ProceduralRoom() {
 
       {/* MAIN EXTERIOR BUILDING - Luxury HQ with Glass Facade */}
       {/* ─────────────────────────────────────────────────────────────────────────────── */}
-      <group position={[0, 0, 22]}>
-        {/* Building core - dark metal base structure */}
-        <mesh position={[0, 2.5, 0]} castShadow receiveShadow>
-          <boxGeometry args={[12, 5, 6]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            metalness={0.7}
-            roughness={0.3}
-          />
-        </mesh>
 
-        {/* Curved glass facade - main feature */}
-        {/* Left glass wall */}
-        <mesh position={[-5.8, 2.5, 2.8]} castShadow>
-          <planeGeometry args={[5.5, 5]} />
-          <meshPhysicalMaterial
-            color="#dfefff"
-            transmission={1}
-            transparent
-            opacity={0.35}
-            roughness={0.12}
-            metalness={0}
-            thickness={0.4}
-            ior={1.5}
-            envMapIntensity={2}
-          />
-        </mesh>
 
-        {/* Right glass wall */}
-        <mesh position={[5.8, 2.5, 2.8]} castShadow>
-          <planeGeometry args={[5.5, 5]} />
-          <meshPhysicalMaterial
-            color="#dfefff"
-            transmission={1}
-            transparent
-            opacity={0.35}
-            roughness={0.12}
-            metalness={0}
-            thickness={0.4}
-            ior={1.5}
-            envMapIntensity={2}
-          />
-        </mesh>
+      {/* external scenery */}
 
-        {/* Top glass skylight */}
-        <mesh position={[0, 4.95, 2.5]} rotation={[0, 0, 0]} castShadow>
-          <planeGeometry args={[12, 2.5]} />
-          <meshPhysicalMaterial
-            color="#dfefff"
-            transmission={1}
-            transparent
-            opacity={0.35}
-            roughness={0.12}
-            ior={1.5}
-          />
-        </mesh>
-
-        {/* Warm interior ambient glow */}
-        <pointLight position={[-3, 3, 0]} color="#ffaa44" intensity={4} distance={8} decay={2} />
-        <pointLight position={[3, 3, 0]} color="#ffaa44" intensity={4} distance={8} decay={2} />
-        <pointLight position={[0, 4, 0]} color="#ffbb55" intensity={3} distance={6} decay={2} />
-
-        {/* Metal framing - horizontal beams */}
-        {[0, 1.2, 2.4, 3.6, 4.8].map((y, i) => (
-          <mesh key={`h-beam-${i}`} position={[0, y, 0]} castShadow>
-            <boxGeometry args={[12, 0.08, 0.08]} />
-            <meshStandardMaterial color="#0a0a0a" metalness={0.9} roughness={0.1} />
-          </mesh>
-        ))}
-
-        {/* Metal framing - vertical columns */}
-        {[-5, -2.5, 0, 2.5, 5].map((x, i) => (
-          <mesh key={`v-col-${i}`} position={[x, 2.5, 0]} castShadow>
-            <boxGeometry args={[0.1, 5, 0.08]} />
-            <meshStandardMaterial color="#0a0a0a" metalness={0.9} roughness={0.1} />
-          </mesh>
-        ))}
-
-        {/* Second floor - upper level */}
-        <mesh position={[0, 4.2, -2.5]} castShadow receiveShadow>
-          <boxGeometry args={[9, 0.06, 4]} />
-          <meshStandardMaterial color="#2a2a2a" metalness={0.5} roughness={0.4} />
-        </mesh>
-
-        {/* Upper glass walls */}
-        <mesh position={[-4.3, 5, -2.5]} castShadow>
-          <planeGeometry args={[4, 2]} />
-          <meshPhysicalMaterial
-            color="#dfefff"
-            transmission={1}
-            transparent
-            opacity={0.35}
-            roughness={0.12}
-            ior={1.5}
-          />
-        </mesh>
-        <mesh position={[4.3, 5, -2.5]} castShadow>
-          <planeGeometry args={[4, 2]} />
-          <meshPhysicalMaterial
-            color="#dfefff"
-            transmission={1}
-            transparent
-            opacity={0.35}
-            roughness={0.12}
-            ior={1.5}
-          />
-        </mesh>
-
-        {/* Roofline - contemporary silhouette */}
-        <mesh position={[0, 5.1, 1]} castShadow>
-          <boxGeometry args={[12.5, 0.15, 5]} />
-          <meshStandardMaterial color="#0f0f0f" metalness={0.8} roughness={0.2} />
-        </mesh>
-      </group>
 
       {/* LANDSCAPE - Premium campus trees */}
 
-      {/* Pine trees - distant left cluster */}
+      {/* Pine trees - distant left cluster
       {[[-20, 35], [-15, 38], [-25, 32], [-10, 40]].map(([x, z], i) => (
         <group key={`tree-left-${i}`} position={[x, 0, z]}>
           <mesh castShadow>
@@ -693,9 +583,9 @@ export default function ProceduralRoom() {
             <meshStandardMaterial color="#2d5a2d" roughness={0.9} />
           </mesh>
         </group>
-      ))}
+      ))} */}
 
-      {/* Pine trees - distant right cluster */}
+      {/* Pine trees - distant right cluster
       {[[20, 36], [15, 39], [25, 33], [10, 41]].map(([x, z], i) => (
         <group key={`tree-right-${i}`} position={[x, 0, z]}>
           <mesh castShadow>
@@ -707,9 +597,9 @@ export default function ProceduralRoom() {
             <meshStandardMaterial color="#2d5a2d" roughness={0.9} />
           </mesh>
         </group>
-      ))}
+      ))} */}
 
-      {/* Mountain backdrop - distant silhouettes */}
+      {/* Mountain backdrop - distant silhouettes
       <mesh position={[-35, 8, 100]} castShadow>
         <coneGeometry args={[40, 35, 6]} />
         <meshStandardMaterial color="#4a4a4a" roughness={0.95} metalness={0} />
@@ -723,23 +613,23 @@ export default function ProceduralRoom() {
       <mesh position={[35, 7, 102]} castShadow>
         <coneGeometry args={[38, 32, 6]} />
         <meshStandardMaterial color="#4a4a4a" roughness={0.95} metalness={0} />
-      </mesh>
+      </mesh> */}
 
       {/* Sky backdrop plane */}
-      <mesh position={[0, 15, 150]}>
+      {/* <mesh position={[0, 15, 150]}>
         <planeGeometry args={[200, 100]} />
         <meshBasicMaterial color="#ffd9a3" />
-      </mesh>
+      </mesh> */}
 
       {/* LEFT WALL - interior */}
       <mesh position={[-7, 2.75, -1]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[8, 6]} />
+        <planeGeometry args={[12.2, 6]} />
         <meshStandardMaterial color="#f5f1eb" roughness={0.98} metalness={0.02} />
       </mesh>
 
       {/* RIGHT WALL - interior */}
       <mesh position={[7, 2.75, -1]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[8, 6]} />
+        <planeGeometry args={[12.2, 6]} />
         <meshStandardMaterial color="#f5f1eb" roughness={0.98} metalness={0.02} />
       </mesh>
 
