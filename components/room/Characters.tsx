@@ -31,7 +31,7 @@ function Character({ position, rotation = [0, 0, 0], accentColor, particleColor 
   });
 
   // Particle cloud around character
-  const pCount = 30;
+  const pCount = 8;
   const pPositions = new Float32Array(pCount * 3);
   for (let i = 0; i < pCount; i++) {
     const angle = (i / pCount) * Math.PI * 2;
@@ -178,7 +178,7 @@ export default function Characters() {
         name="Arjun"
         position={[-1.6, 0, 1.8]}
         rotation={[0, 0.4, 0]}
-        accentColor="#00ff41"
+        accentColor="#d4af37"
         particleColor="#00ff41"
       />
       {/* Full Stack Developer — blue */}
@@ -186,7 +186,7 @@ export default function Characters() {
         name="Tanmay"
         position={[0, 0, 2.2]}
         rotation={[0, 0, 0]}
-        accentColor="#00aaff"
+        accentColor="#ffffff"
         particleColor="#00aaff"
       />
       {/* ML Engineer — purple */}
@@ -194,7 +194,7 @@ export default function Characters() {
         name="Priya"
         position={[1.6, 0, 1.8]}
         rotation={[0, -0.4, 0]}
-        accentColor="#b040ff"
+        accentColor="#c0c0c0"
         particleColor="#b040ff"
       />
     </group>

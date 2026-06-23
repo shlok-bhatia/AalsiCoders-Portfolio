@@ -282,7 +282,7 @@
 //   );
 // }
 'use client';
-
+import { Environment, Sky } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -325,61 +325,422 @@ export default function ProceduralRoom() {
           resolution={1024}
           mixBlur={1}
           mixStrength={50}
-          roughness={0.85}
+          roughness={0.25}
           depthScale={1.2}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.4}
-          color="#050810"
-          metalness={0.9}
+          color="#2a2a2a"
+          metalness={0.4}
           mirror={0}
         />
       </mesh>
 
-      {/* Floor grid - subtle */}
-      <Grid
-        position={[0, 0.002, 0]}
-        args={[20, 16]}
-        cellSize={0.5}
-        cellThickness={0.3}
-        cellColor="#1a3a6a"
-        sectionSize={2.5}
-        sectionThickness={0.6}
-        sectionColor="#1a5580"
-        fadeDistance={12}
-        fadeStrength={2}
-        infiniteGrid={false}
-      />
+
 
       {/* BACK WALL */}
       <mesh position={[0, 2.75, -5]} receiveShadow>
         <planeGeometry args={[16, 6]} />
-        <meshStandardMaterial color="#0a0c12" roughness={0.98} metalness={0.02} />
+        <meshStandardMaterial color="#2b2f36" roughness={0.98} metalness={0.02} />
       </mesh>
 
-      {/* Back wall thin neon strips */}
-      {[-5.5, -3.5, -1.5, 0, 1.5, 3.5, 5.5].map((x, i) => (
-        <mesh key={i} position={[x, 2.75, -4.97]}>
-          <boxGeometry args={[0.012, 5.2, 0.008]} />
-          <meshBasicMaterial
-            color={i % 3 === 0 ? '#003366' : i % 3 === 1 ? '#004455' : '#2a0044'}
+      {/* GLASS FRONT WALL - Realistic Architectural Glass */}
+
+      <group position={[0, 0, 5]}>
+
+        {/* Left Glass - Premium architectural glass */}
+        <mesh position={[-5.5, 2.75, 0]}>
+          <planeGeometry args={[6, 5.5]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
             transparent
-            opacity={0.55}
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+            clearcoat={0.3}
+            clearcoatRoughness={0.2}
           />
         </mesh>
-      ))}
 
-      <ScanBar />
+        {/* Left Glass Frame */}
+        <mesh position={[-5.5, 2.75, 0.15]}>
+          <lineSegments>
+            <edgesGeometry
+              args={[
+                new THREE.PlaneGeometry(6, 5.5)
+              ]}
+            />
+            <lineBasicMaterial
+              color="#8aa0b3"
+            />
+          </lineSegments>
+          <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.15} />
+        </mesh>
 
-      {/* LEFT WALL */}
-      <mesh position={[-7, 2.75, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[12, 6]} />
-        <meshStandardMaterial color="#08090f" roughness={0.98} metalness={0.02} />
+        {/* Right Glass - Premium architectural glass */}
+        <mesh position={[5.5, 2.75, 0]}>
+          <planeGeometry args={[6, 5.5]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+            clearcoat={0.3}
+            clearcoatRoughness={0.2}
+          />
+        </mesh>
+
+        {/* Right Glass Frame */}
+        <mesh position={[5.5, 2.75, 0.15]}>
+          <lineSegments>
+            <edgesGeometry
+              args={[
+                new THREE.PlaneGeometry(6, 5.5)
+              ]}
+            />
+            <lineBasicMaterial
+              color="#8aa0b3"
+            />
+          </lineSegments>
+          <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.15} />
+        </mesh>
+
+        {/* Top Glass - Premium architectural glass */}
+        <mesh position={[0, 5, 0]}>
+          <planeGeometry args={[16, 1]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+            clearcoat={0.3}
+            clearcoatRoughness={0.2}
+          />
+        </mesh>
+
+        {/* Top Glass Frame */}
+        <mesh position={[0, 5, 0.15]}>
+          <boxGeometry args={[16.2, 1.2, 0.15]} />
+          <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.15} />
+        </mesh>
+
+        {/* Exterior light strips along entrance */}
+        {[-5, -2.5, 0, 2.5, 5].map((x, i) => (
+          <group key={i} position={[x, 0.05, 0.5]}>
+            <mesh>
+              <boxGeometry args={[0.6, 0.01, 0.02]} />
+              <meshBasicMaterial color="#ffcc88" transparent opacity={0.8} />
+            </mesh>
+            <pointLight color="#ffaa66" intensity={1.2} distance={2.5} decay={2} />
+          </group>
+        ))}
+
+      </group>
+
+      {/* MAIN GLASS DOOR - Premium entrance doors */}
+
+      <group position={[0, 0, 4.98]}>
+
+        {/* Left Door Glass */}
+        <mesh position={[-1.35, 2.2, 0]}>
+          <planeGeometry args={[2.5, 4.4]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+            clearcoat={0.3}
+            clearcoatRoughness={0.2}
+          />
+        </mesh>
+
+        {/* Left Door Frame */}
+        <mesh position={[-1.35, 2.2, 0.12]}>
+          
+          <lineSegments>
+            <edgesGeometry
+              args={[
+                new THREE.PlaneGeometry(2.5, 4.4)
+              ]}
+            />
+            <lineBasicMaterial
+              color="#8aa0b3"
+            />
+          </lineSegments>
+          <meshStandardMaterial color="#ffffff" metalness={0.95} roughness={0.1} />
+        </mesh>
+
+        {/* Right Door Glass */}
+        <mesh position={[1.35, 2.2, 0]}>
+          <planeGeometry args={[2.5, 4.4]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+            clearcoat={0.3}
+            clearcoatRoughness={0.2}
+          />
+        </mesh>
+
+        {/* Right Door Frame */}
+        <mesh position={[1.35, 2.2, 0.12]}>
+          
+          <lineSegments>
+            <edgesGeometry
+              args={[
+                new THREE.PlaneGeometry(2.5, 4.4)
+              ]}
+            />
+            <lineBasicMaterial
+              color="#8aa0b3"
+            />
+          </lineSegments>
+          <meshStandardMaterial color="#ffffff" metalness={0.95} roughness={0.1} />
+        </mesh>
+
+      </group>
+
+      {/* DOOR FRAME - thin borders only */}
+
+      <group position={[0, 0, 4.97]}>
+        <mesh position={[-2.4, 2.2, 0]}>
+          <boxGeometry args={[0.08, 4.5, 0.08]} />
+          <meshStandardMaterial
+            color="#1f1f1f"
+            metalness={0.8}
+            roughness={0.2}
+          />
+        </mesh>
+        <mesh position={[2.4, 2.2, 0]}>
+          <boxGeometry args={[0.08, 4.5, 0.08]} />
+          <meshStandardMaterial
+            color="#1f1f1f"
+            metalness={0.8}
+            roughness={0.2}
+          />
+        </mesh>
+        <mesh position={[0, 4.45, 0]}>
+          <boxGeometry args={[4.9, 0.08, 0.08]} />
+          <meshStandardMaterial
+            color="#1f1f1f"
+            metalness={0.8}
+            roughness={0.2}
+          />
+        </mesh>
+      </group>
+
+      {/* EXTERIOR ENVIRONMENT - Premium HQ Campus */}
+
+      {/* Massive ground plane - prevents void at world boundary */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 20]} receiveShadow>
+        <planeGeometry args={[400, 400]} />
+        <meshStandardMaterial color="#a0a09a" roughness={0.7} metalness={0.05} />
       </mesh>
 
-      {/* RIGHT WALL */}
-      <mesh position={[7, 2.75, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[12, 6]} />
-        <meshStandardMaterial color="#08090f" roughness={0.98} metalness={0.02} />
+
+      {/* MAIN EXTERIOR BUILDING - Luxury HQ with Glass Facade */}
+      {/* ─────────────────────────────────────────────────────────────────────────────── */}
+      <group position={[0, 0, 22]}>
+        {/* Building core - dark metal base structure */}
+        <mesh position={[0, 2.5, 0]} castShadow receiveShadow>
+          <boxGeometry args={[12, 5, 6]} />
+          <meshStandardMaterial
+            color="#1a1a1a"
+            metalness={0.7}
+            roughness={0.3}
+          />
+        </mesh>
+
+        {/* Curved glass facade - main feature */}
+        {/* Left glass wall */}
+        <mesh position={[-5.8, 2.5, 2.8]} castShadow>
+          <planeGeometry args={[5.5, 5]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+          />
+        </mesh>
+
+        {/* Right glass wall */}
+        <mesh position={[5.8, 2.5, 2.8]} castShadow>
+          <planeGeometry args={[5.5, 5]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            metalness={0}
+            thickness={0.4}
+            ior={1.5}
+            envMapIntensity={2}
+          />
+        </mesh>
+
+        {/* Top glass skylight */}
+        <mesh position={[0, 4.95, 2.5]} rotation={[0, 0, 0]} castShadow>
+          <planeGeometry args={[12, 2.5]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            ior={1.5}
+          />
+        </mesh>
+
+        {/* Warm interior ambient glow */}
+        <pointLight position={[-3, 3, 0]} color="#ffaa44" intensity={4} distance={8} decay={2} />
+        <pointLight position={[3, 3, 0]} color="#ffaa44" intensity={4} distance={8} decay={2} />
+        <pointLight position={[0, 4, 0]} color="#ffbb55" intensity={3} distance={6} decay={2} />
+
+        {/* Metal framing - horizontal beams */}
+        {[0, 1.2, 2.4, 3.6, 4.8].map((y, i) => (
+          <mesh key={`h-beam-${i}`} position={[0, y, 0]} castShadow>
+            <boxGeometry args={[12, 0.08, 0.08]} />
+            <meshStandardMaterial color="#0a0a0a" metalness={0.9} roughness={0.1} />
+          </mesh>
+        ))}
+
+        {/* Metal framing - vertical columns */}
+        {[-5, -2.5, 0, 2.5, 5].map((x, i) => (
+          <mesh key={`v-col-${i}`} position={[x, 2.5, 0]} castShadow>
+            <boxGeometry args={[0.1, 5, 0.08]} />
+            <meshStandardMaterial color="#0a0a0a" metalness={0.9} roughness={0.1} />
+          </mesh>
+        ))}
+
+        {/* Second floor - upper level */}
+        <mesh position={[0, 4.2, -2.5]} castShadow receiveShadow>
+          <boxGeometry args={[9, 0.06, 4]} />
+          <meshStandardMaterial color="#2a2a2a" metalness={0.5} roughness={0.4} />
+        </mesh>
+
+        {/* Upper glass walls */}
+        <mesh position={[-4.3, 5, -2.5]} castShadow>
+          <planeGeometry args={[4, 2]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            ior={1.5}
+          />
+        </mesh>
+        <mesh position={[4.3, 5, -2.5]} castShadow>
+          <planeGeometry args={[4, 2]} />
+          <meshPhysicalMaterial
+            color="#dfefff"
+            transmission={1}
+            transparent
+            opacity={0.35}
+            roughness={0.12}
+            ior={1.5}
+          />
+        </mesh>
+
+        {/* Roofline - contemporary silhouette */}
+        <mesh position={[0, 5.1, 1]} castShadow>
+          <boxGeometry args={[12.5, 0.15, 5]} />
+          <meshStandardMaterial color="#0f0f0f" metalness={0.8} roughness={0.2} />
+        </mesh>
+      </group>
+
+      {/* LANDSCAPE - Premium campus trees */}
+
+      {/* Pine trees - distant left cluster */}
+      {[[-20, 35], [-15, 38], [-25, 32], [-10, 40]].map(([x, z], i) => (
+        <group key={`tree-left-${i}`} position={[x, 0, z]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.5, 0.7, 8, 8]} />
+            <meshStandardMaterial color="#4a3820" roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 5, 0]} castShadow>
+            <coneGeometry args={[4.5, 10, 10]} />
+            <meshStandardMaterial color="#2d5a2d" roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Pine trees - distant right cluster */}
+      {[[20, 36], [15, 39], [25, 33], [10, 41]].map(([x, z], i) => (
+        <group key={`tree-right-${i}`} position={[x, 0, z]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.5, 0.7, 8, 8]} />
+            <meshStandardMaterial color="#4a3820" roughness={0.85} />
+          </mesh>
+          <mesh position={[0, 5, 0]} castShadow>
+            <coneGeometry args={[4.5, 10, 10]} />
+            <meshStandardMaterial color="#2d5a2d" roughness={0.9} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Mountain backdrop - distant silhouettes */}
+      <mesh position={[-35, 8, 100]} castShadow>
+        <coneGeometry args={[40, 35, 6]} />
+        <meshStandardMaterial color="#4a4a4a" roughness={0.95} metalness={0} />
+      </mesh>
+
+      <mesh position={[0, 10, 105]} castShadow>
+        <coneGeometry args={[50, 45, 6]} />
+        <meshStandardMaterial color="#3a3a3a" roughness={0.95} metalness={0} />
+      </mesh>
+
+      <mesh position={[35, 7, 102]} castShadow>
+        <coneGeometry args={[38, 32, 6]} />
+        <meshStandardMaterial color="#4a4a4a" roughness={0.95} metalness={0} />
+      </mesh>
+
+      {/* Sky backdrop plane */}
+      <mesh position={[0, 15, 150]}>
+        <planeGeometry args={[200, 100]} />
+        <meshBasicMaterial color="#ffd9a3" />
+      </mesh>
+
+      {/* LEFT WALL - interior */}
+      <mesh position={[-7, 2.75, -1]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[8, 6]} />
+        <meshStandardMaterial color="#f5f1eb" roughness={0.98} metalness={0.02} />
+      </mesh>
+
+      {/* RIGHT WALL - interior */}
+      <mesh position={[7, 2.75, -1]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+        <planeGeometry args={[8, 6]} />
+        <meshStandardMaterial color="#f5f1eb" roughness={0.98} metalness={0.02} />
       </mesh>
 
       {/* CEILING */}
@@ -442,126 +803,67 @@ export default function ProceduralRoom() {
         <pointLight position={[0, 0.3, 0]} color="#00aa55" intensity={0.8} distance={2} decay={2} />
       </group>
 
-      {/* SERVER RACK right */}
-      <group position={[5.8, 1.2, -2]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.6, 2.4, 0.6]} />
-          <meshStandardMaterial color="#06090f" metalness={0.8} roughness={0.3} />
-        </mesh>
-        {[...Array(9)].map((_, i) => (
-          <group key={i} position={[0, -0.9 + i * 0.22, 0.31]}>
-            <mesh>
-              <boxGeometry args={[0.48, 0.17, 0.018]} />
-              <meshStandardMaterial color="#09101e" metalness={0.6} roughness={0.4} />
-            </mesh>
-            <mesh position={[0.18, 0, 0.011]}>
-              <boxGeometry args={[0.04, 0.04, 0.001]} />
-              <meshBasicMaterial color={i % 3 === 0 ? '#00cc44' : i % 3 === 1 ? '#ff4400' : '#0088cc'} />
-            </mesh>
-          </group>
-        ))}
-        <pointLight position={[0, 0, 0.5]} color="#00cc44" intensity={1.2} distance={3} decay={2} />
-      </group>
 
-      {/* HOLOGRAPHIC RING floor center */}
-      <group position={[0, 0.003, 0]}>
-        <mesh ref={holoRingRef} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[2.85, 3.0, 64]} />
-          <meshBasicMaterial color="#0044aa" transparent opacity={0.25} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh ref={holoRing2Ref} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.5, 1.6, 64]} />
-          <meshBasicMaterial color="#006688" transparent opacity={0.2} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[3.0, 64]} />
-          <meshBasicMaterial color="#001133" transparent opacity={0.06} side={THREE.DoubleSide} />
-        </mesh>
-      </group>
 
-      {/* ENERGY COLUMNS corners */}
-      <group ref={energyRef}>
-        {[[-5, 0.5, -3.5], [5, 0.5, -3.5]].map(([x, y, z], i) => (
-          <group key={i} position={[x as number, y as number, z as number]}>
-            <mesh>
-              <cylinderGeometry args={[0.025, 0.025, 1, 8]} />
-              <meshBasicMaterial
-                color={i === 0 ? '#00aa44' : '#8833cc'}
-                transparent opacity={0.5}
-              />
-            </mesh>
-            <pointLight color={i === 0 ? '#00aa44' : '#8833cc'} intensity={2} distance={4} decay={2} />
-          </group>
-        ))}
-      </group>
 
+      {/* PROCEDURAL SKY - Dynamic golden hour sunset */}
+      <Sky distance={450000} sunPosition={[100, 20, 100]} inclination={0.49} azimuth={0.25} />
+
+      {/* ENVIRONMENT - Premium sunset HDRI reflections */}
+      <Environment preset="sunset" background={false} />
+
+      {/* Exterior sun glow */}
+      <pointLight position={[80, 50, 150]} color="#ffcc99" intensity={1.5} distance={300} decay={2} />
+
+      {/* Ambient exterior fill - warm */}
+      <pointLight position={[0, 25, 80]} color="#ffaa66" intensity={2.5} distance={200} decay={2} />
+
+      {/* Floating particles */}
       <FloatingParticles />
-      <DataStreams />
 
-      {/* ── LIGHTING — HQ Cinematic: warm amber overhead + cool cyan accents ── */}
 
-      {/* Base ambient - just fills shadows, not bright */}
-      <ambientLight intensity={0.55} color="#b8c8e0" />
 
-      {/* Warm amber overhead — like interior HQ lighting from image 2 */}
-      <pointLight position={[-3, 5, -1]} color="#ff9944" intensity={8} distance={10} decay={2} />
-      <pointLight position={[3, 5, -1]} color="#ffaa55" intensity={8} distance={10} decay={2} />
-      <pointLight position={[0, 5, 1]} color="#ff8833" intensity={6} distance={9} decay={2} />
+      {/* LIGHTING - Interior + Exterior Balance */}
 
-      {/* Cool cyan tech accents at mid-height */}
-      <pointLight position={[0, 2.5, -1.5]} color="#0099cc" intensity={6} distance={8} decay={2} />
-      <pointLight position={[-3, 1.5, 0]} color="#0077aa" intensity={3} distance={5} decay={2} />
-      <pointLight position={[3, 1.5, 0]} color="#0077aa" intensity={3} distance={5} decay={2} />
+      {/* Base ambient - subtle fill */}
+      <ambientLight intensity={0.16} color="#fffaf0" />
 
-      {/* Directional for crisp warm shadows */}
+      {/* Main interior overhead warm light */}
+      <pointLight position={[0, 4.5, 0]} intensity={2.2} color="#ffcc88" distance={18} decay={2} />
+      <pointLight position={[-3, 5, -1]} color="#ff9944" intensity={1.8} distance={12} decay={2} />
+      <pointLight position={[3, 5, -1]} color="#ffaa55" intensity={1.8} distance={12} decay={2} />
+
+      {/* Warm exterior sunset directional light */}
       <directionalLight
-        position={[2, 7, 4]}
+        position={[15, 18, 50]}
         intensity={1.8}
-        color="#ffe0bb"
+        color="#ffcc99"
         castShadow
         shadow-mapSize={[2048, 2048]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={40}
-        shadow-camera-left={-14}
-        shadow-camera-right={14}
-        shadow-camera-top={14}
-        shadow-camera-bottom={-14}
+        shadow-camera-near={1}
+        shadow-camera-far={200}
+        shadow-camera-left={-80}
+        shadow-camera-right={80}
+        shadow-camera-top={80}
+        shadow-camera-bottom={-80}
       />
 
-      {/* Front fill so characters are lit facing camera */}
-      <pointLight position={[0, 1.8, 5]} color="#cc8833" intensity={4} distance={10} decay={2} />
+      {/* Exterior warm ambient fill */}
+      <pointLight position={[0, 20, 60]} color="#ffb366" intensity={2.5} distance={150} decay={2} />
 
-      {/* Green left accent — server rack side */}
-      <pointLight position={[-5.5, 2, -2]} color="#00aa44" intensity={4} distance={7} decay={2} />
+      {/* Front entrance fill light - prevents dark silhouette */}
+      <pointLight position={[0, 2, 6]} color="#dd9955" intensity={1.2} distance={12} decay={2} />
 
-      {/* Purple right accent */}
-      <pointLight position={[5.5, 2, -2]} color="#7722bb" intensity={4} distance={7} decay={2} />
+      {/* Desk accent warm light */}
+      <pointLight position={[0, 2.2, -3]} color="#ffbb77" intensity={2.5} distance={5} decay={2} />
 
-      {/* Desk warm pool */}
-      <pointLight position={[0, 2, -3]} color="#ffbb66" intensity={3} distance={4} decay={2} />
-
-      {/* Floor dim bounce */}
-      <pointLight position={[0, 0.2, 0]} color="#001a33" intensity={2} distance={5} decay={2} />
+      {/* Cool accent - minimal */}
+      <pointLight position={[-3, 3, 2]} color="#0088cc" intensity={0.8} distance={6} decay={2} />
     </group>
   );
 }
 
-function ScanBar() {
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => {
-    if (ref.current) {
-      ref.current.position.y = 0.3 + ((clock.elapsedTime * 0.45) % 5);
-      const mat = ref.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = 0.04 + Math.sin(clock.elapsedTime * 2.5) * 0.02;
-    }
-  });
-  return (
-    <mesh ref={ref} position={[0, 0.3, -4.96]}>
-      <planeGeometry args={[16, 0.04]} />
-      <meshBasicMaterial color="#0099cc" transparent opacity={0.05} />
-    </mesh>
-  );
-}
+
 
 function FloatingParticles() {
   const count = 60;
@@ -575,9 +877,9 @@ function FloatingParticles() {
       positions[i * 3 + 1] = Math.random() * 4 + 0.2;
       positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
       const c = Math.random();
-      if (c < 0.4) { colors[i*3]=1; colors[i*3+1]=0.75; colors[i*3+2]=0.3; }
-      else if (c < 0.7) { colors[i*3]=0; colors[i*3+1]=0.7; colors[i*3+2]=1; }
-      else { colors[i*3]=1; colors[i*3+1]=1; colors[i*3+2]=1; }
+      if (c < 0.4) { colors[i * 3] = 1; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.3; }
+      else if (c < 0.7) { colors[i * 3] = 0; colors[i * 3 + 1] = 0.7; colors[i * 3 + 2] = 1; }
+      else { colors[i * 3] = 1; colors[i * 3 + 1] = 1; colors[i * 3 + 2] = 1; }
     }
     return { positions, colors };
   }, []);
@@ -615,38 +917,3 @@ function FloatingParticles() {
   );
 }
 
-function DataStreams() {
-  const ref = useRef<THREE.Group>(null);
-  const streams = useMemo(() =>
-    Array.from({ length: 6 }, (_, i) => ({
-      x: (Math.random() - 0.5) * 12,
-      z: -2.5 - Math.random() * 2,
-      speed: 0.5 + Math.random() * 0.8,
-      offset: Math.random() * Math.PI * 2,
-      color: ['#003366', '#004422', '#220033', '#003344'][i % 4],
-      height: 0.2 + Math.random() * 0.4,
-    })), []);
-
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const t = clock.elapsedTime;
-    ref.current.children.forEach((child, i) => {
-      const s = streams[i];
-      child.position.y = ((t * s.speed + s.offset) % 5);
-      const mat = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
-      if (mat?.opacity !== undefined)
-        mat.opacity = 0.12 + Math.sin(t * 2 + s.offset) * 0.08;
-    });
-  });
-
-  return (
-    <group ref={ref}>
-      {streams.map((s, i) => (
-        <mesh key={i} position={[s.x, 0, s.z]}>
-          <boxGeometry args={[0.01, s.height, 0.01]} />
-          <meshBasicMaterial color={s.color} transparent opacity={0.15} />
-        </mesh>
-      ))}
-    </group>
-  );
-}

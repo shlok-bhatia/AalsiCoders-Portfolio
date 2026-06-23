@@ -33,8 +33,8 @@ export function MonitorMesh() {
       <mesh ref={screenRef} position={[0, 0.22, 0.035]}>
         <boxGeometry args={[1.1, 0.62, 0.01]} />
         <meshStandardMaterial
-          color="#001428"
-          emissive="#004488"
+          color="#151515"
+          emissive="#ffaa55"
           emissiveIntensity={1.0}
           roughness={0.05}
         />
