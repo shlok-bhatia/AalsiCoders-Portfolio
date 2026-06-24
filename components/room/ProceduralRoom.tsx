@@ -293,6 +293,12 @@ export default function ProceduralRoom() {
   const holoRing2Ref = useRef<THREE.Mesh>(null);
   const energyRef = useRef<THREE.Group>(null);
   const backdrop = useTexture("assets/images/mountain-sunset.jpeg");
+  const groundTex = useTexture("assets/images/ground.png");
+  useMemo(() => {
+    groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+    groundTex.repeat.set(8, 8);
+    groundTex.needsUpdate = true;
+  }, [groundTex]);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     if (holoRingRef.current) {
@@ -319,7 +325,7 @@ export default function ProceduralRoom() {
     <group>
       {/* FLOOR */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[20, 16]} />
+        <planeGeometry args={[20, 10.4]} />
         <MeshReflectorMaterial
           blur={[500, 200]}
           resolution={1024}
@@ -329,7 +335,7 @@ export default function ProceduralRoom() {
           depthScale={1.2}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.4}
-          color="#2a2a2a"
+          color="#1a1a1a"
           metalness={0.4}
           mirror={0}
         />
@@ -555,12 +561,11 @@ export default function ProceduralRoom() {
 
       {/* EXTERIOR ENVIRONMENT - Premium HQ Campus */}
 
-      {/* Massive ground plane - prevents void at world boundary */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 20]} receiveShadow>
+      {/* Massive ground plane */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.8, 20]} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <meshStandardMaterial color="#5a7a3a" roughness={0.95} metalness={0} />
+        <meshStandardMaterial map={groundTex} roughness={0.95} metalness={0} />
       </mesh>
-
 
       {/* MAIN EXTERIOR BUILDING - Luxury HQ with Glass Facade */}
       {/* ─────────────────────────────────────────────────────────────────────────────── */}
@@ -695,61 +700,49 @@ export default function ProceduralRoom() {
 
 
       {/* EXTERIOR BACKDROP - Mountain sunset image */}
-      tsx{/* EXTERIOR BACKDROP - Mountain sunset image */}
+
       <mesh position={[0, 13, 35]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[160, 45]} />
         <meshBasicMaterial map={backdrop} toneMapped={false} />
       </mesh>
 
-      
 
-    {/* Grass zone - right outside glass */}
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 9]} receiveShadow>
-  <planeGeometry args={[80, 8]} />
-  <meshStandardMaterial color="#6b8c42" roughness={0.98} metalness={0} />
-</mesh>
 
-{/* Grass mid zone */}
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 16]} receiveShadow>
-  <planeGeometry args={[100, 12]} />
-  <meshStandardMaterial color="#5e7d38" roughness={0.97} metalness={0} />
-</mesh>
+      {/* TEXTURED GROUND - right outside glass */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 64]} receiveShadow>
+        <planeGeometry args={[80, 8]} />
+        <meshStandardMaterial map={groundTex} roughness={0.98} metalness={0} />
+      </mesh>
 
-{/* Grass far zone - darker/deeper */}
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 25]} receiveShadow>
-  <planeGeometry args={[120, 20]} />
-  <meshStandardMaterial color="#4a6830" roughness={0.96} metalness={0} />
-</mesh>
+      {/* TEXTURED GROUND - mid zone */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 64]} receiveShadow>
+        <planeGeometry args={[100, 12]} />
+        <meshStandardMaterial map={groundTex} roughness={0.97} metalness={0} />
+      </mesh>
 
-{/* Left grass fill */}
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[-30, -0.02, 14]}>
-  <planeGeometry args={[60, 40]} />
-  <meshStandardMaterial color="#5a7535" roughness={0.97} metalness={0} />
-</mesh>
+      {/* TEXTURED GROUND - far zone */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 64]} receiveShadow>
+        <planeGeometry args={[120, 20]} />
+        <meshStandardMaterial map={groundTex} roughness={0.96} metalness={0} />
+      </mesh>
 
-{/* Right grass fill */}
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[30, -0.02, 14]}>
-  <planeGeometry args={[60, 40]} />
-  <meshStandardMaterial color="#5a7535" roughness={0.97} metalness={0} />
-</mesh>
+      {/* TEXTURED GROUND - left fill */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-30, -0.1, 64]}>
+        <planeGeometry args={[60, 40]} />
+        <meshStandardMaterial map={groundTex} roughness={0.97} metalness={0} />
+      </mesh>
 
-{/* Rocky/dirt patches - breaks up flat green */}
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[-8, 0.01, 18]}>
-  <planeGeometry args={[4, 3]} />
-  <meshStandardMaterial color="#8a7a5a" roughness={0.99} metalness={0} />
-</mesh>
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.01, 22]}>
-  <planeGeometry args={[5, 3]} />
-  <meshStandardMaterial color="#7a6a4a" roughness={0.99} metalness={0} />
-</mesh>
-<mesh rotation={[-Math.PI / 2, 0, 0]} position={[-15, 0.01, 28]}>
-  <planeGeometry args={[6, 4]} />
-  <meshStandardMaterial color="#8a7a5a" roughness={0.99} metalness={0} />
-</mesh>
+      {/* TEXTURED GROUND - right fill */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[30, -0.1, 64]}>
+        <planeGeometry args={[60, 40]} />
+        <meshStandardMaterial map={groundTex} roughness={0.97} metalness={0} />
+      </mesh>
 
-     
 
-      
+
+
+
+
 
       {/* Left backdrop side wing */}
       <mesh position={[-55, 9, 30]} rotation={[0, Math.PI * 0.65, 0]}>
@@ -769,7 +762,11 @@ export default function ProceduralRoom() {
 
       {/* FIX 7: Floor reflector color tweak - change the existing floor color */}
       {/* On your existing floor MeshReflectorMaterial, change color from "#2a2a2a" to "#9a9080" */}
-
+      {/* Interior floor base - prevents ground texture bleeding inside */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, -3]}>
+        <planeGeometry args={[20, 16]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.9} metalness={0.1} />
+      </mesh>
       {/* PROCEDURAL SKY - Dynamic golden hour sunset */}
       <Sky distance={450000} sunPosition={[100, 20, 100]} inclination={0.49} azimuth={0.25} />
 
