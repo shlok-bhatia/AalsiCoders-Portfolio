@@ -558,7 +558,7 @@ export default function ProceduralRoom() {
       {/* Massive ground plane - prevents void at world boundary */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 20]} receiveShadow>
         <planeGeometry args={[400, 400]} />
-        <meshStandardMaterial color="#a0a09a" roughness={0.7} metalness={0.05} />
+        <meshStandardMaterial color="#5a7a3a" roughness={0.95} metalness={0} />
       </mesh>
 
 
@@ -694,7 +694,81 @@ export default function ProceduralRoom() {
       </group>
 
 
+      {/* EXTERIOR BACKDROP - Mountain sunset image */}
+      tsx{/* EXTERIOR BACKDROP - Mountain sunset image */}
+      <mesh position={[0, 13, 35]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[160, 45]} />
+        <meshBasicMaterial map={backdrop} toneMapped={false} />
+      </mesh>
 
+      
+
+    {/* Grass zone - right outside glass */}
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 9]} receiveShadow>
+  <planeGeometry args={[80, 8]} />
+  <meshStandardMaterial color="#6b8c42" roughness={0.98} metalness={0} />
+</mesh>
+
+{/* Grass mid zone */}
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 16]} receiveShadow>
+  <planeGeometry args={[100, 12]} />
+  <meshStandardMaterial color="#5e7d38" roughness={0.97} metalness={0} />
+</mesh>
+
+{/* Grass far zone - darker/deeper */}
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 25]} receiveShadow>
+  <planeGeometry args={[120, 20]} />
+  <meshStandardMaterial color="#4a6830" roughness={0.96} metalness={0} />
+</mesh>
+
+{/* Left grass fill */}
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[-30, -0.02, 14]}>
+  <planeGeometry args={[60, 40]} />
+  <meshStandardMaterial color="#5a7535" roughness={0.97} metalness={0} />
+</mesh>
+
+{/* Right grass fill */}
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[30, -0.02, 14]}>
+  <planeGeometry args={[60, 40]} />
+  <meshStandardMaterial color="#5a7535" roughness={0.97} metalness={0} />
+</mesh>
+
+{/* Rocky/dirt patches - breaks up flat green */}
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[-8, 0.01, 18]}>
+  <planeGeometry args={[4, 3]} />
+  <meshStandardMaterial color="#8a7a5a" roughness={0.99} metalness={0} />
+</mesh>
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[10, 0.01, 22]}>
+  <planeGeometry args={[5, 3]} />
+  <meshStandardMaterial color="#7a6a4a" roughness={0.99} metalness={0} />
+</mesh>
+<mesh rotation={[-Math.PI / 2, 0, 0]} position={[-15, 0.01, 28]}>
+  <planeGeometry args={[6, 4]} />
+  <meshStandardMaterial color="#8a7a5a" roughness={0.99} metalness={0} />
+</mesh>
+
+     
+
+      
+
+      {/* Left backdrop side wing */}
+      <mesh position={[-55, 9, 30]} rotation={[0, Math.PI * 0.65, 0]}>
+        <planeGeometry args={[60, 30]} />
+        <meshBasicMaterial map={backdrop} toneMapped={false} opacity={0.5} transparent />
+      </mesh>
+
+      {/* Right backdrop side wing */}
+      <mesh position={[55, 9, 30]} rotation={[0, -Math.PI * 0.65, 0]}>
+        <planeGeometry args={[60, 30]} />
+        <meshBasicMaterial map={backdrop} toneMapped={false} opacity={0.5} transparent />
+      </mesh>
+
+
+
+
+
+      {/* FIX 7: Floor reflector color tweak - change the existing floor color */}
+      {/* On your existing floor MeshReflectorMaterial, change color from "#2a2a2a" to "#9a9080" */}
 
       {/* PROCEDURAL SKY - Dynamic golden hour sunset */}
       <Sky distance={450000} sunPosition={[100, 20, 100]} inclination={0.49} azimuth={0.25} />
@@ -706,7 +780,7 @@ export default function ProceduralRoom() {
       <pointLight position={[80, 50, 150]} color="#ffcc99" intensity={1.5} distance={300} decay={2} />
 
       {/* Ambient exterior fill - warm */}
-      <pointLight position={[0, 25, 80]} color="#ffaa66" intensity={2.5} distance={200} decay={2} />
+      <pointLight position={[0, 25, 80]} color="#ffaa66" intensity={0.4} distance={200} decay={2} />
 
       {/* Floating particles */}
       <FloatingParticles />
@@ -719,14 +793,14 @@ export default function ProceduralRoom() {
       <ambientLight intensity={0.16} color="#fffaf0" />
 
       {/* Main interior overhead warm light */}
-      <pointLight position={[0, 4.5, 0]} intensity={2.2} color="#ffcc88" distance={18} decay={2} />
-      <pointLight position={[-3, 5, -1]} color="#ff9944" intensity={1.8} distance={12} decay={2} />
+      <pointLight position={[0, 4.5, 0]} intensity={0.8} color="#ffcc88" distance={18} decay={2} />
+      <pointLight position={[-3, 5, -1]} color="#ff9944" intensity={0.4} distance={8} decay={2} />
       <pointLight position={[3, 5, -1]} color="#ffaa55" intensity={1.8} distance={12} decay={2} />
 
       {/* Warm exterior sunset directional light */}
       <directionalLight
         position={[15, 18, 50]}
-        intensity={1.8}
+        intensity={0.9}
         color="#ffcc99"
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -739,10 +813,10 @@ export default function ProceduralRoom() {
       />
 
       {/* Exterior warm ambient fill */}
-      <pointLight position={[0, 20, 60]} color="#ffb366" intensity={2.5} distance={150} decay={2} />
+      <pointLight position={[0, 20, 60]} color="#ffb366" intensity={0.6} distance={150} decay={2} />
 
       {/* Front entrance fill light - prevents dark silhouette */}
-      <pointLight position={[0, 2, 6]} color="#dd9955" intensity={1.2} distance={12} decay={2} />
+      <pointLight position={[0, 2, 6]} color="#dd9955" intensity={0.5} distance={12} decay={2} />
 
       {/* Desk accent warm light */}
       <pointLight position={[0, 2.2, -3]} color="#ffbb77" intensity={2.5} distance={5} decay={2} />
