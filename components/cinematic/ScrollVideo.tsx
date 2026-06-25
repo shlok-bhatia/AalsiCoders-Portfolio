@@ -14,85 +14,114 @@ const SCENES = [
 export default function ScrollVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
-  const lastSeekRef = useRef<number>(0);
   const transitionTriggeredRef = useRef(false);
+
+  // ── Fast-path refs (no React re-renders) ──────────────────────────
+  const progressRef = useRef(0);        // raw scroll progress 0-1
+  const maxScrollRef = useRef(1);       // cached scrollHeight - innerHeight
+  const rafRunning = useRef(false);     // is the RAF loop alive?
+  const endZoomRef = useRef(0);         // zoom factor for the last 15%
+  const zoomDivRef = useRef<HTMLDivElement>(null);
+  const darkOverlayRef = useRef<HTMLDivElement>(null);
+
+  const [localProgress, setLocalProgress] = useState(0);
   const [endZoom, setEndZoom] = useState(0);
 
   const { phase, setPhase, setVideoReady, setScrollProgress, videoReady } = useAppStore();
 
-  // RAF-throttled seek
-  const seekVideo = useCallback((progress: number) => {
-    const now = performance.now();
-    if (now - lastSeekRef.current < 14) return;
-    lastSeekRef.current = now;
-
-    const video = videoRef.current;
-    if (!video || !video.duration) return;
-    const target = progress * video.duration;
-    if (Math.abs(video.currentTime - target) > 0.04) {
-      video.currentTime = target;
-    }
+  // ── Cache maxScroll on mount + resize (avoids layout thrash) ──────
+  const recalcMaxScroll = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    maxScrollRef.current = Math.max(container.scrollHeight - window.innerHeight, 1);
   }, []);
 
-  // Scroll handler
+  // ── Dedicated RAF loop: ONLY seeks the video ─────────────────────
+  const tick = useCallback(() => {
+    if (!rafRunning.current) return;
+
+    const video = videoRef.current;
+    if (video && video.duration) {
+      const target = progressRef.current * video.duration;
+      // Only seek if the delta is meaningful (>1 frame at 30fps)
+      if (Math.abs(video.currentTime - target) > 0.03) {
+        video.currentTime = target;
+      }
+    }
+
+    // Direct DOM writes for zoom (bypass React entirely)
+    const zoom = endZoomRef.current;
+    if (zoomDivRef.current) {
+      zoomDivRef.current.style.transform = `scale(${1 + zoom * 0.08})`;
+    }
+    if (darkOverlayRef.current) {
+      darkOverlayRef.current.style.opacity = `${zoom}`;
+    }
+
+    requestAnimationFrame(tick);
+  }, []);
+
+  // ── Scroll handler: lightweight, no RAF wrapping ──────────────────
   useEffect(() => {
     if (phase !== 'cinematic') return;
 
+    // Start the RAF loop
+    rafRunning.current = true;
+    recalcMaxScroll();
+    requestAnimationFrame(tick);
+
+    // Throttled store update (~10fps) for UI elements (progress bar, scene label)
+    let storeTimerId: ReturnType<typeof setInterval> | null = null;
+    storeTimerId = setInterval(() => {
+      const p = progressRef.current;
+      setScrollProgress(p);
+      setLocalProgress(p);
+      setEndZoom(endZoomRef.current);
+    }, 100);
+
     const onScroll = () => {
-      rafRef.current = requestAnimationFrame(() => {
-        const container = containerRef.current;
-        if (!container) return;
+      // Fast reads — scrollY is always cheap; maxScroll is pre-cached
+      const progress = Math.min(Math.max(window.scrollY / maxScrollRef.current, 0), 1);
+      progressRef.current = progress;
 
-        const scrollTop = window.scrollY;
-        const maxScroll = container.scrollHeight - window.innerHeight;
-        if (maxScroll <= 0) return;
+      // Compute zoom (pure math, no DOM)
+      endZoomRef.current = progress >= 0.85
+        ? Math.min((progress - 0.85) / 0.12, 1)
+        : 0;
 
-        const progress = Math.min(Math.max(scrollTop / maxScroll, 0), 1);
+      // Transition trigger (one-shot)
+      if (progress >= 0.99 && window.scrollY > 100 && !transitionTriggeredRef.current) {
+        transitionTriggeredRef.current = true;
+        document.body.style.overflow = 'hidden';
 
-        setScrollProgress(progress);
-        seekVideo(progress);
-
-        // Gradual zoom starts at 85%
-        if (progress >= 0.85) {
-          const zoomProgress = Math.min((progress - 0.85) / 0.12, 1);
-          setEndZoom(zoomProgress);
-        } else {
-          setEndZoom(0);
-        }
-
-        // Trigger at 99%: let video play naturally to its end
-        if (progress >= 0.99 && scrollTop > 100 && !transitionTriggeredRef.current) {
-          transitionTriggeredRef.current = true;
-          document.body.style.overflow = 'hidden';
-
-          const video = videoRef.current;
-          if (video) {
-            video.onended = () => {
-              setPhase('transition');
-            };
-            // If already at the end or play() fails, fall back
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(() => setPhase('transition'));
-            }
-            // Hard safety: transition after 3s regardless
-            setTimeout(() => setPhase('transition'), 3000);
-          } else {
-            setPhase('transition');
+        const video = videoRef.current;
+        if (video) {
+          video.onended = () => setPhase('transition');
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => setPhase('transition'));
           }
+          setTimeout(() => setPhase('transition'), 3000);
+        } else {
+          setPhase('transition');
         }
-      });
+      }
     };
+
+    const onResize = () => recalcMaxScroll();
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, [phase, seekVideo, setScrollProgress, setPhase]);
+    window.addEventListener('resize', onResize, { passive: true });
 
-  // Video ready handler
+    return () => {
+      rafRunning.current = false;
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      if (storeTimerId) clearInterval(storeTimerId);
+    };
+  }, [phase, tick, recalcMaxScroll, setScrollProgress, setPhase]);
+
+  // ── Video ready handler (unchanged) ───────────────────────────────
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -144,9 +173,9 @@ export default function ScrollVideo() {
     };
   }, [setVideoReady, setPhase]);
 
-  const { scrollProgress } = useAppStore();
+  // ── Derived UI state (reads from throttled localProgress) ─────────
   const currentScene = SCENES.reduce((acc, scene) => {
-    return scrollProgress >= scene.start ? scene : acc;
+    return localProgress >= scene.start ? scene : acc;
   }, SCENES[0]);
 
   const isVisible = phase === 'cinematic' || phase === 'loading' || phase === 'transition';
@@ -157,7 +186,7 @@ export default function ScrollVideo() {
       <div className="letterbox-top" style={{ opacity: videoReady ? 1 : 0 }} />
       <div className="letterbox-bottom" style={{ opacity: videoReady ? 1 : 0 }} />
 
-      <div className="scroll-progress" style={{ width: `${scrollProgress * 100}%` }} />
+      <div className="scroll-progress" style={{ width: `${localProgress * 100}%` }} />
 
       {videoReady && (
         <div
@@ -170,7 +199,7 @@ export default function ScrollVideo() {
         </div>
       )}
 
-      {videoReady && scrollProgress < 0.02 && (
+      {videoReady && localProgress < 0.02 && (
         <div
           className="fixed bottom-12 left-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"
           style={{ transform: 'translateX(-50%)' }}
@@ -186,11 +215,10 @@ export default function ScrollVideo() {
       <div ref={containerRef} id="scroll-container" style={{ height: '400vh', position: 'relative' }}>
         <div style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
           <div
+            ref={zoomDivRef}
             style={{
               width: '100%',
               height: '100%',
-              transform: `scale(${1 + endZoom * 0.08})`,
-              transition: 'transform 0.3s ease-out',
               willChange: 'transform',
             }}
           >
@@ -224,11 +252,11 @@ export default function ScrollVideo() {
           />
 
           <div
+            ref={darkOverlayRef}
             className="absolute inset-0 pointer-events-none"
             style={{
               background: 'radial-gradient(ellipse at center, rgba(2,4,8,0.3) 0%, rgba(2,4,8,0.8) 100%)',
-              opacity: endZoom,
-              transition: 'opacity 0.3s ease-out',
+              opacity: 0,
             }}
           />
         </div>
