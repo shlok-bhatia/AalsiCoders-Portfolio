@@ -46,7 +46,8 @@ export default function Room() {
     return () => clearTimeout(fallback);
   }, [phase, setRoomLoaded]);
 
-  if (phase !== 'room' && phase !== 'transition') return null;
+  // Allow Room to mount during 'cinematic' so 3D assets preload in background
+  if (phase !== 'room' && phase !== 'transition' && phase !== 'cinematic') return null;
 
   if (isMobile) {
     if (phase !== 'room') return null;
@@ -123,10 +124,20 @@ export default function Room() {
     );
   }
 
+  // During cinematic: mount offscreen so WebGL compiles in background
+  const isPreloading = phase === 'cinematic';
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10 }}>
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: isPreloading ? -1 : 10,
+      opacity: isPreloading ? 0 : 1,
+      pointerEvents: isPreloading ? 'none' : 'auto',
+    }}>
       <Canvas
         dpr={[1, 1.5]}
+        frameloop={isPreloading ? 'demand' : 'always'}
         gl={{
           antialias: true,
           alpha: false,
