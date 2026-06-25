@@ -346,7 +346,7 @@ export default function ProceduralRoom() {
       {/* BACK WALL */}
       <mesh position={[0, 2.75, -5]} receiveShadow>
         <planeGeometry args={[16, 6]} />
-        <meshStandardMaterial color="#2b2f36" roughness={0.98} metalness={0.02} />
+        <meshStandardMaterial color="#e8dcc8" roughness={0.92} metalness={0.0} />
       </mesh>
 
       {/* GLASS FRONT WALL - Realistic Architectural Glass */}
@@ -629,39 +629,60 @@ export default function ProceduralRoom() {
       {/* LEFT WALL - interior */}
       <mesh position={[-7, 2.75, -1]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[12.2, 6]} />
-        <meshStandardMaterial color="#f5f1eb" roughness={0.98} metalness={0.02} />
+        <meshStandardMaterial color="#e8dcc8" roughness={0.92} metalness={0.0} />
       </mesh>
 
       {/* RIGHT WALL - interior */}
       <mesh position={[7, 2.75, -1]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[12.2, 6]} />
-        <meshStandardMaterial color="#f5f1eb" roughness={0.98} metalness={0.02} />
+        <meshStandardMaterial color="#e8dcc8" roughness={0.92} metalness={0.0} />
       </mesh>
 
       {/* CEILING */}
       <mesh position={[0, 5.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[22, 16]} />
-        <meshStandardMaterial color="#060710" roughness={1} />
+        <meshStandardMaterial color="#1a1208" roughness={1} />
       </mesh>
 
-      {/* Ceiling recessed warm amber light strips */}
+      {/* Ceiling recessed warm amber light strips - TUBE LIGHT EFFECT */}
       {[[-3.5, -1.5], [-3.5, 1.5], [3.5, -1.5], [3.5, 1.5]].map(([x, z], i) => (
         <group key={i} position={[x, 5.45, z]}>
+          {/* Visual strip mesh */}
           <mesh>
             <boxGeometry args={[2.5, 0.012, 0.06]} />
             <meshBasicMaterial color="#ffcc77" transparent opacity={0.9} />
           </mesh>
-          <pointLight color="#ff9944" intensity={4} distance={5} decay={2} />
+          {/* 5 point lights spread along strip length to simulate tube */}
+          {[-1.0, -0.5, 0, 0.5, 1.0].map((offset, j) => (
+            <pointLight
+              key={j}
+              position={[offset, -0.1, 0]}
+              color="#ff9933"
+              intensity={3}
+              distance={7}
+              decay={2}
+            />
+          ))}
         </group>
       ))}
 
-      {/* Central ceiling cool cyan strip */}
+
+      {/* Central ceiling cyan strip - TUBE LIGHT EFFECT */}
       <group position={[0, 5.45, 0]}>
         <mesh>
           <boxGeometry args={[4, 0.012, 0.06]} />
           <meshBasicMaterial color="#44ccff" transparent opacity={0.8} />
         </mesh>
-        <pointLight color="#22aaee" intensity={5} distance={6} decay={2} />
+        {[-1.5, -0.75, 0, 0.75, 1.5].map((offset, j) => (
+          <pointLight
+            key={j}
+            position={[offset, -0.1, 0]}
+            color="#44aaff"
+            intensity={2}
+            distance={7}
+            decay={2}
+          />
+        ))}
       </group>
 
       {/* MAIN DESK */}
@@ -789,10 +810,11 @@ export default function ProceduralRoom() {
       {/* Base ambient - subtle fill */}
       <ambientLight intensity={0.16} color="#fffaf0" />
 
-      {/* Main interior overhead warm light */}
-      <pointLight position={[0, 4.5, 0]} intensity={0.8} color="#ffcc88" distance={18} decay={2} />
-      <pointLight position={[-3, 5, -1]} color="#ff9944" intensity={0.4} distance={8} decay={2} />
-      <pointLight position={[3, 5, -1]} color="#ffaa55" intensity={1.8} distance={12} decay={2} />
+      {/* Main interior overhead fill lights to push light down to floor */}
+      <pointLight position={[-3.5, 4, -1.5]} color="#ff9922" intensity={15} distance={15} decay={2} />
+      <pointLight position={[-3.5, 4, 1.5]} color="#ff9922" intensity={15} distance={15} decay={2} />
+      <pointLight position={[3.5, 4, -1.5]} color="#ff9922" intensity={15} distance={15} decay={2} />
+      <pointLight position={[3.5, 4, 1.5]} color="#ff9922" intensity={15} distance={15} decay={2} />
 
       {/* Warm exterior sunset directional light */}
       <directionalLight
@@ -816,7 +838,7 @@ export default function ProceduralRoom() {
       <pointLight position={[0, 2, 6]} color="#dd9955" intensity={0.5} distance={12} decay={2} />
 
       {/* Desk accent warm light */}
-      <pointLight position={[0, 2.2, -3]} color="#ffbb77" intensity={2.5} distance={5} decay={2} />
+      <pointLight position={[0, 2.2, -3]} color="#ffbb77" intensity={3.5} distance={5} decay={2} />
 
       {/* Cool accent - minimal */}
       <pointLight position={[-3, 3, 2]} color="#0088cc" intensity={0.8} distance={6} decay={2} />
